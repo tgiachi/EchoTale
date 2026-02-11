@@ -1,0 +1,10 @@
+[package]
+name = "echotale"
+version = "0.1.0"
+description = "EchoTale DSL language support for Zed"
+authors = ["tgiachi"]
+repository = "https://github.com/tgiachi/EchoTale"
+
+[grammars.echotale]
+repository = "https://github.com/tgiachi/EchoTale"
+commit = ""

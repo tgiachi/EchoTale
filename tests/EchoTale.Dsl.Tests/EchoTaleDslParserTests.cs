@@ -11,7 +11,7 @@ public sealed class EchoTaleDslParserTests
     {
         const string script = """
                               game "The Crooked House" start laboratory
-                              include "common/items.etf"
+                              include "common/items.etale"
                               sounds {
                                 unlock = "unlock.wav"
                                 door = "door_creak.wav"
@@ -158,7 +158,7 @@ public sealed class EchoTaleDslParserTests
         Assert.Equal("The Crooked House", document.GameTitle);
         Assert.Equal("laboratory", document.StartRoomId);
         Assert.Single(document.Includes);
-        Assert.Equal("common/items.etf", document.Includes[0]);
+        Assert.Equal("common/items.etale", document.Includes[0]);
         Assert.Equal(3, document.Sounds.Count);
         Assert.Equal("unlock.wav", document.Sounds["unlock"]);
         Assert.Equal("door_creak.wav", document.Sounds["door"]);
@@ -425,7 +425,7 @@ public sealed class EchoTaleDslParserTests
         const string script = """
                               # initial comment
                               game "Comment Test" start lab // inline comment
-                              include "common/base.etf"
+                              include "common/base.etale"
                               /* block
                                  multiline */
                               sounds {

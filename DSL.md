@@ -46,7 +46,7 @@ A valid file starts with a `game` header and then zero or more top-level declara
 ```dsl
 game "My Story" start foyer
 
-include "common/base.etf"
+include "common/base.etale"
 
 sounds {
   click = "click.wav"
@@ -80,7 +80,7 @@ rule intro_rule { ... }
 
 Supported top-level blocks/statements:
 
-- `include "path.etf"`
+- `include "path.etale"`
 - `sounds { ... }`
 - `music { ... }`
 - `player { ... }`
@@ -292,7 +292,7 @@ do stopMusic
 ## Includes
 
 ```dsl
-include "common/items.etf"
+include "common/items.etale"
 ```
 
 Current behavior:
@@ -374,7 +374,7 @@ This is the recommended complete workflow for a first story.
 
 ```dsl
 game "The Crooked House" start laboratory
-include "common/items.etf"
+include "common/items.etale"
 ```
 
 ### 2. Declare audio resources
@@ -509,7 +509,7 @@ Always validate after edits:
 
 ```dsl
 game "The Crooked House" start laboratory
-include "common/items.etf"
+include "common/items.etale"
 
 sounds {
   unlock = "unlock.wav"

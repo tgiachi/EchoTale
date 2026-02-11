@@ -7,7 +7,7 @@ public class ParserBenchmarks
 {
     private const string Script = """
                                   game "La Casa Storta" start laboratorio
-                                  include "common/items.etf"
+                                  include "common/items.etale"
                                   sound unlock = "unlock.wav"
                                   sound door = "door_creak.wav"
                                   sound coin = "coin_drop.wav"

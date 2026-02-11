@@ -11,6 +11,9 @@ module.exports = grammar({
     _top_level: ($) =>
       choice(
         $.include_statement,
+        $.author_statement,
+        $.version_statement,
+        $.voices_block,
         $.sounds_block,
         $.music_block,
         $.player_block,
@@ -25,6 +28,12 @@ module.exports = grammar({
       seq("game", $.string, "start", field("start_room", $.identifier)),
 
     include_statement: ($) => seq("include", $.string),
+
+    author_statement: ($) => seq("author", "=", $.string),
+
+    version_statement: ($) => seq("version", "=", $.string),
+
+    voices_block: ($) => seq("voices", "{", repeat($.key_value), "}"),
 
     sounds_block: ($) => seq("sounds", "{", repeat($.key_value), "}"),
 
@@ -54,14 +63,29 @@ module.exports = grammar({
         $.name_prop,
         $.desc_prop,
         $.image_prop,
+        $.ambient_prop,
         $.exit_statement,
         $.contains_prop
       ),
 
     name_prop: ($) => seq("name", $.string),
-    desc_prop: ($) => seq("desc", $.string),
+    desc_prop: ($) => seq("desc", choice($.string, $.stateful_desc)),
     image_prop: ($) => seq("image", $.string),
+    ambient_prop: ($) => seq("ambient", $.string),
     contains_prop: ($) => seq("contains", $.identifier),
+
+    stateful_desc: ($) =>
+      seq(
+        "{",
+        "if",
+        "isOpen",
+        field("object", $.identifier),
+        $.boolean,
+        $.string,
+        "else",
+        $.string,
+        "}"
+      ),
 
     exit_statement: ($) =>
       seq(
@@ -100,7 +124,9 @@ module.exports = grammar({
         $.openable_prop,
         $.locked_prop,
         $.is_open_prop,
+        $.hidden_prop,
         $.contains_prop,
+        $.default_block,
         $.verbs_block
       ),
 
@@ -109,6 +135,11 @@ module.exports = grammar({
     openable_prop: ($) => seq("openable", $.boolean),
     locked_prop: ($) => seq("locked", $.boolean),
     is_open_prop: ($) => seq("isOpen", $.boolean),
+    hidden_prop: ($) => seq("hidden", $.boolean),
+
+    // ── Default fallback ────────────────────────────────────
+
+    default_block: ($) => seq("default", "{", repeat1($.do_clause), "}"),
 
     // ── Verbs ───────────────────────────────────────────────
 
@@ -136,12 +167,15 @@ module.exports = grammar({
       seq(
         "rule",
         field("id", $.identifier),
+        optional($.once_modifier),
         "{",
         $.when_clause,
         repeat($.if_clause),
         repeat1($.do_clause),
         "}"
       ),
+
+    once_modifier: ($) => "once",
 
     // ── Triggers ────────────────────────────────────────────
 
@@ -215,6 +249,7 @@ module.exports = grammar({
         $.open_action,
         $.unlock_exit_action,
         $.spawn_action,
+        $.reveal_action,
         $.sound_action,
         $.play_music_action,
         $.stop_music_action
@@ -228,6 +263,13 @@ module.exports = grammar({
     spawn_action: ($) =>
       seq(
         "spawn",
+        field("object", $.identifier),
+        "in",
+        field("room", $.identifier)
+      ),
+    reveal_action: ($) =>
+      seq(
+        "reveal",
         field("object", $.identifier),
         "in",
         field("room", $.identifier)

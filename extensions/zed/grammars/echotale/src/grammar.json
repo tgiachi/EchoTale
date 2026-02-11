@@ -27,6 +27,18 @@
         },
         {
           "type": "SYMBOL",
+          "name": "author_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "version_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "voices_block"
+        },
+        {
+          "type": "SYMBOL",
           "name": "sounds_block"
         },
         {
@@ -86,6 +98,64 @@
         {
           "type": "SYMBOL",
           "name": "string"
+        }
+      ]
+    },
+    "author_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "author"
+        },
+        {
+          "type": "STRING",
+          "value": "="
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        }
+      ]
+    },
+    "version_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "version"
+        },
+        {
+          "type": "STRING",
+          "value": "="
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        }
+      ]
+    },
+    "voices_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "voices"
+        },
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "key_value"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
         }
       ]
     },
@@ -291,6 +361,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "ambient_prop"
+        },
+        {
+          "type": "SYMBOL",
           "name": "exit_statement"
         },
         {
@@ -320,8 +394,17 @@
           "value": "desc"
         },
         {
-          "type": "SYMBOL",
-          "name": "string"
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "string"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "stateful_desc"
+            }
+          ]
         }
       ]
     },
@@ -331,6 +414,19 @@
         {
           "type": "STRING",
           "value": "image"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        }
+      ]
+    },
+    "ambient_prop": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "ambient"
         },
         {
           "type": "SYMBOL",
@@ -348,6 +444,51 @@
         {
           "type": "SYMBOL",
           "name": "identifier"
+        }
+      ]
+    },
+    "stateful_desc": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "STRING",
+          "value": "if"
+        },
+        {
+          "type": "STRING",
+          "value": "isOpen"
+        },
+        {
+          "type": "FIELD",
+          "name": "object",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "boolean"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        },
+        {
+          "type": "STRING",
+          "value": "else"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string"
+        },
+        {
+          "type": "STRING",
+          "value": "}"
         }
       ]
     },
@@ -511,7 +652,15 @@
         },
         {
           "type": "SYMBOL",
+          "name": "hidden_prop"
+        },
+        {
+          "type": "SYMBOL",
           "name": "contains_prop"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "default_block"
         },
         {
           "type": "SYMBOL",
@@ -581,6 +730,43 @@
         {
           "type": "SYMBOL",
           "name": "boolean"
+        }
+      ]
+    },
+    "hidden_prop": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "hidden"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "boolean"
+        }
+      ]
+    },
+    "default_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "default"
+        },
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT1",
+          "content": {
+            "type": "SYMBOL",
+            "name": "do_clause"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
         }
       ]
     },
@@ -722,6 +908,18 @@
           }
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "once_modifier"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "STRING",
           "value": "{"
         },
@@ -748,6 +946,10 @@
           "value": "}"
         }
       ]
+    },
+    "once_modifier": {
+      "type": "STRING",
+      "value": "once"
     },
     "when_clause": {
       "type": "SEQ",
@@ -1117,6 +1319,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "reveal_action"
+        },
+        {
+          "type": "SYMBOL",
           "name": "sound_action"
         },
         {
@@ -1203,6 +1409,35 @@
         {
           "type": "STRING",
           "value": "spawn"
+        },
+        {
+          "type": "FIELD",
+          "name": "object",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "in"
+        },
+        {
+          "type": "FIELD",
+          "name": "room",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        }
+      ]
+    },
+    "reveal_action": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "reveal"
         },
         {
           "type": "FIELD",

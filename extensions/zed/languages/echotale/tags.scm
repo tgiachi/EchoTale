@@ -1,8 +1,8 @@
-; Rooms — autocomplete when referencing room IDs (exit targets, in conditions, spawn)
+; Rooms — autocomplete when referencing room IDs
 (room_block
   id: (identifier) @name) @definition.class
 
-; Objects — autocomplete when referencing object IDs (contains, use, take, look, spawn, etc.)
+; Objects — autocomplete when referencing object IDs
 (object_block
   id: (identifier) @name) @definition.class
 
@@ -21,6 +21,11 @@
 
 ; Music — autocomplete music keys
 (music_block
+  (key_value
+    key: (identifier) @name)) @definition.constant
+
+; Voices — autocomplete voice keys
+(voices_block
   (key_value
     key: (identifier) @name)) @definition.constant
 

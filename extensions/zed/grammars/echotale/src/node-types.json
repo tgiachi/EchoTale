@@ -1,5 +1,35 @@
 [
   {
+    "type": "ambient_prop",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "author_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "boolean",
     "named": true,
     "fields": {}
@@ -81,6 +111,21 @@
     }
   },
   {
+    "type": "default_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "do_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "desc_prop",
     "named": true,
     "fields": {},
@@ -88,6 +133,10 @@
       "multiple": false,
       "required": true,
       "types": [
+        {
+          "type": "stateful_desc",
+          "named": true
+        },
         {
           "type": "string",
           "named": true
@@ -118,6 +167,10 @@
         },
         {
           "type": "print_action",
+          "named": true
+        },
+        {
+          "type": "reveal_action",
           "named": true
         },
         {
@@ -319,6 +372,21 @@
       "types": [
         {
           "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "hidden_prop",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "boolean",
           "named": true
         }
       ]
@@ -556,7 +624,15 @@
           "named": true
         },
         {
+          "type": "default_block",
+          "named": true
+        },
+        {
           "type": "desc_prop",
+          "named": true
+        },
+        {
+          "type": "hidden_prop",
           "named": true
         },
         {
@@ -730,6 +806,32 @@
     }
   },
   {
+    "type": "reveal_action",
+    "named": true,
+    "fields": {
+      "object": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "room": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "room_block",
     "named": true,
     "fields": {
@@ -748,6 +850,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "ambient_prop",
+          "named": true
+        },
         {
           "type": "contains_prop",
           "named": true
@@ -796,6 +902,10 @@
         },
         {
           "type": "if_clause",
+          "named": true
+        },
+        {
+          "type": "once_modifier",
           "named": true
         },
         {
@@ -864,6 +974,10 @@
       "required": true,
       "types": [
         {
+          "type": "author_statement",
+          "named": true
+        },
+        {
           "type": "game_declaration",
           "named": true
         },
@@ -894,6 +1008,14 @@
         {
           "type": "sounds_block",
           "named": true
+        },
+        {
+          "type": "version_statement",
+          "named": true
+        },
+        {
+          "type": "voices_block",
+          "named": true
         }
       ]
     }
@@ -922,6 +1044,36 @@
           }
         ]
       }
+    }
+  },
+  {
+    "type": "stateful_desc",
+    "named": true,
+    "fields": {
+      "object": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "boolean",
+          "named": true
+        },
+        {
+          "type": "string",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -1092,6 +1244,36 @@
     }
   },
   {
+    "type": "version_statement",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "string",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "voices_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "key_value",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "when_clause",
     "named": true,
     "fields": {},
@@ -1175,6 +1357,14 @@
     "named": false
   },
   {
+    "type": "ambient",
+    "named": false
+  },
+  {
+    "type": "author",
+    "named": false
+  },
+  {
     "type": "chance",
     "named": false
   },
@@ -1188,6 +1378,10 @@
   },
   {
     "type": "contains",
+    "named": false
+  },
+  {
+    "type": "default",
     "named": false
   },
   {
@@ -1240,6 +1434,10 @@
   },
   {
     "type": "has",
+    "named": false
+  },
+  {
+    "type": "hidden",
     "named": false
   },
   {
@@ -1311,6 +1509,10 @@
     "named": false
   },
   {
+    "type": "once_modifier",
+    "named": true
+  },
+  {
     "type": "open",
     "named": false
   },
@@ -1332,6 +1534,10 @@
   },
   {
     "type": "print",
+    "named": false
+  },
+  {
+    "type": "reveal",
     "named": false
   },
   {
@@ -1396,6 +1602,14 @@
   },
   {
     "type": "verbs",
+    "named": false
+  },
+  {
+    "type": "version",
+    "named": false
+  },
+  {
+    "type": "voices",
     "named": false
   },
   {

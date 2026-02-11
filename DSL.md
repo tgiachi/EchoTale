@@ -36,12 +36,14 @@ EchoTale DSL is a declarative scripting language to define:
 - scripted logic (rules)
 - object-local interactions (verbs)
 - audio resources and audio actions
+- text voice metadata and voice-tagged strings
 
 The parser builds an AST (abstract syntax tree). A semantic validator then checks cross-references and key constraints.
 
 ## File Structure
 
 A valid file starts with a `game` header and then zero or more top-level declarations.
+Default file extension is `.etale`.
 
 ```dsl
 game "My Story" start foyer
@@ -49,6 +51,11 @@ author = "squid"
 version = "v1.0.0"
 
 include "common/base.etale"
+
+voices {
+  a = "narrator"
+  b = "objects"
+}
 
 sounds {
   click = "click.wav"
@@ -85,6 +92,7 @@ Supported top-level blocks/statements:
 - `include "path.etale"`
 - `author = "name"` (optional metadata)
 - `version = "semver-or-label"` (optional metadata)
+- `voices { <voiceId> = "voiceName" ... }`
 - `sounds { ... }`
 - `music { ... }`
 - `player { ... }`
@@ -96,6 +104,13 @@ Metadata notes:
 
 - `author` and `version` are optional.
 - If repeated, the last declaration wins.
+- `voices` entries are key/value maps; if repeated across blocks, the last value for the same `voiceId` wins.
+
+Voice-tagged strings:
+
+- Any supported string field can start with `"<voiceId>"`.
+- Example: `desc "<a>A dusty room."`
+- Validator checks that `<voiceId>` exists in `voices`.
 
 ## Rooms
 
@@ -104,6 +119,7 @@ room laboratory {
   name "Laboratory"
   image "lab.png"
   desc "A dusty room."
+  ambient "Dust dances in the air."
   exit east -> hallway
   exit north -> attic locked true key key "The door is locked."
   contains chair
@@ -115,6 +131,7 @@ Room fields:
 - `name "..."` optional
 - `image "..."` optional
 - `desc "..."` optional
+- `ambient "..."` optional
 - `exit <direction> -> <targetRoom> [locked <bool> [key <objectId>] ["locked message"]]`
 - `contains <objectId>` repeatable
 
@@ -129,6 +146,7 @@ object locker {
   name "Armadietto"
   desc "A closed metal locker."
   portable false
+  hidden false
   container true
   openable true
   locked false
@@ -140,14 +158,42 @@ object locker {
 Object fields:
 
 - `name "..."` optional
-- `desc "..."` optional
+- `desc "..."` optional (static)
+- `desc { if isOpen <objectId> <bool> "<text>" else "<text>" }` optional (stateful)
 - `portable <bool>` optional
 - `container <bool>` optional
 - `openable <bool>` optional
 - `locked <bool>` optional
 - `isOpen <bool>` optional
+- `hidden <bool>` optional
 - `contains <objectId>` repeatable
+- `default { do ... }` optional fallback actions
 - `verbs { ... }` optional (see dedicated section)
+
+Stateful description example:
+
+```dsl
+object cabinet {
+  name "Cabinet"
+  desc {
+    if isOpen cabinet false
+    "It is closed."
+    else
+    "It is open."
+  }
+}
+```
+
+Default fallback example:
+
+```dsl
+object chair {
+  name "Chair"
+  default {
+    do print "Nothing happens."
+  }
+}
+```
 
 ## Object Verbs (Embedded Puzzle Logic)
 
@@ -211,6 +257,18 @@ A rule has:
 - one `when ...`
 - zero or more `if ...`
 - one or more `do ...`
+- `else` is not supported in top-level `rule` blocks (it is supported in object `verbs`).
+
+Rule modifier:
+
+- `once` after the rule id to trigger the rule only once.
+
+```dsl
+rule first_enter_lab once {
+  when enter laboratory
+  do print "A cold draft brushes your neck."
+}
+```
 
 ## Triggers
 
@@ -222,7 +280,7 @@ Supported `when` forms:
 - `when take <objectId>`
 - `when use <objectId>`
 - `when use <objectId> on <targetObjectId>`
-- `when command <commandName> <variable>`
+- `when command <commandName> <variableNameInAngleBrackets>`
 
 Command trigger example:
 
@@ -260,9 +318,19 @@ Supported `do` forms:
 - `do open <objectId>`
 - `do unlock exit <roomId> <direction>`
 - `do spawn <objectId> in <roomId>`
+- `do reveal <objectId> in <roomId>`
 - `do sound <soundId>`
 - `do playMusic <musicId>`
 - `do stopMusic`
+
+Reveal example:
+
+```dsl
+rule reveal_coin {
+  when take diary
+  do reveal coin in laboratory
+}
+```
 
 ## Audio: Sounds and Music
 
@@ -368,6 +436,7 @@ Main codes:
 - `ETD002` unknown room
 - `ETD003` unknown sound
 - `ETD004` unknown music
+- `ETD005` unknown voice
 - `ETD020` `player.gives` object already placed in world
 - `ETD030` invalid chance (must be `1..100`)
 - `ETD040` value comparison used without command variable context

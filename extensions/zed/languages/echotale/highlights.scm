@@ -4,18 +4,26 @@
   "game"
   "start"
   "include"
+  "author"
+  "version"
   "room"
   "object"
   "rule"
   "player"
+  "voices"
   "sounds"
   "music"
   "verbs"
+  "default"
   "when"
   "if"
   "do"
   "else"
 ] @keyword
+
+; ── Rule modifier ────────────────────────────────────────
+
+(once_modifier) @keyword.modifier
 
 ; ── Property keywords ────────────────────────────────────
 
@@ -23,6 +31,7 @@
   "name"
   "desc"
   "image"
+  "ambient"
   "exit"
   "contains"
   "portable"
@@ -30,6 +39,7 @@
   "openable"
   "locked"
   "isOpen"
+  "hidden"
   "gives"
   "hp"
   "key"
@@ -55,6 +65,7 @@
   "set"
   "flag"
   "spawn"
+  "reveal"
   "in"
   "open"
   "unlock"
@@ -111,6 +122,8 @@
 (exit_statement target: (identifier) @variable)
 (exit_lock key: (identifier) @variable)
 
+(stateful_desc object: (identifier) @variable)
+
 (enter_trigger (identifier) @variable)
 (look_trigger (identifier) @variable)
 (take_trigger (identifier) @variable)
@@ -130,6 +143,8 @@
 (unlock_exit_action (identifier) @variable)
 (spawn_action object: (identifier) @variable)
 (spawn_action room: (identifier) @variable)
+(reveal_action object: (identifier) @variable)
+(reveal_action room: (identifier) @variable)
 (sound_action (identifier) @variable)
 (play_music_action (identifier) @variable)
 (set_flag_action (identifier) @variable)

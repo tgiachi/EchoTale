@@ -23,6 +23,11 @@
   (key_value
     key: (identifier) @local.definition))
 
+; Voice key definitions
+(voices_block
+  (key_value
+    key: (identifier) @local.definition))
+
 ; Verb definitions
 (verb_def
   verb: (identifier) @local.definition)
@@ -53,6 +58,10 @@
 (player_gives
   (identifier) @local.reference)
 
+; Stateful desc references object
+(stateful_desc
+  object: (identifier) @local.reference)
+
 ; Trigger references
 (enter_trigger (identifier) @local.reference)
 (look_trigger (identifier) @local.reference)
@@ -74,6 +83,8 @@
 (unlock_exit_action (identifier) @local.reference)
 (spawn_action object: (identifier) @local.reference)
 (spawn_action room: (identifier) @local.reference)
+(reveal_action object: (identifier) @local.reference)
+(reveal_action room: (identifier) @local.reference)
 (sound_action (identifier) @local.reference)
 (play_music_action (identifier) @local.reference)
 (set_flag_action (identifier) @local.reference)

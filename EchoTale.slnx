@@ -1,0 +1,6 @@
+<Solution>
+    <Project Path="src/EchoTale.Dsl/EchoTale.Dsl.csproj"/>
+    <Project Path="src\EchoTale.Client\EchoTale.Client.csproj"/>
+    <Project Path="tests/EchoTale.Dsl.Tests/EchoTale.Dsl.Tests.csproj"/>
+    <Project Path="perf/EchoTale.Dsl.Perf/EchoTale.Dsl.Perf.csproj"/>
+</Solution>

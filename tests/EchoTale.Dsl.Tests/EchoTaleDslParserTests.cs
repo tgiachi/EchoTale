@@ -12,6 +12,11 @@ public sealed class EchoTaleDslParserTests
         const string script = """
                               game "The Crooked House" start laboratory
                               include "common/items.etale"
+                              voices {
+                                a = "narrator"
+                                b = "objects"
+                                c = "thoughts"
+                              }
                               sounds {
                                 unlock = "unlock.wav"
                                 door = "door_creak.wav"
@@ -30,8 +35,8 @@ public sealed class EchoTaleDslParserTests
                               }
 
                               room laboratory {
-                                name "Laboratory" image "laboratory.png"
-                                desc "A dusty room. A chair and a cabinet."
+                                name "<b>Laboratory" image "laboratory.png"
+                                desc "<a>A dusty room. A chair and a cabinet."
                                 exit east -> corridor
                                 contains chair
                                 contains cabinet
@@ -159,6 +164,10 @@ public sealed class EchoTaleDslParserTests
         Assert.Equal("laboratory", document.StartRoomId);
         Assert.Single(document.Includes);
         Assert.Equal("common/items.etale", document.Includes[0]);
+        Assert.Equal(3, document.Voices.Count);
+        Assert.Equal("narrator", document.Voices["a"]);
+        Assert.Equal("objects", document.Voices["b"]);
+        Assert.Equal("thoughts", document.Voices["c"]);
         Assert.Equal(3, document.Sounds.Count);
         Assert.Equal("unlock.wav", document.Sounds["unlock"]);
         Assert.Equal("door_creak.wav", document.Sounds["door"]);
@@ -176,6 +185,8 @@ public sealed class EchoTaleDslParserTests
         Assert.Equal(8, document.Rules.Count);
 
         var lab = Assert.Single(document.Rooms, r => r.Id == "laboratory");
+        Assert.Equal("<b>Laboratory", lab.Name);
+        Assert.Equal("<a>A dusty room. A chair and a cabinet.", lab.Description);
         Assert.Equal("laboratory.png", lab.Image);
 
         var corridor = Assert.Single(document.Rooms, r => r.Id == "corridor");
@@ -297,6 +308,25 @@ public sealed class EchoTaleDslParserTests
         var diagnostics = new DslSemanticValidator().Validate(document, script);
 
         Assert.Contains(diagnostics, d => d.Code == "ETD004");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportUnknownVoice_WhenStringPrefixUsesMissingVoice()
+    {
+        const string script = """
+                              game "X" start laboratory
+                              voices {
+                                a = "narrator"
+                              }
+                              room laboratory {
+                                name "<z>Laboratory"
+                              }
+                              """;
+
+        var document = EchoTaleDslParser.Parse(script);
+        var diagnostics = new DslSemanticValidator().Validate(document, script);
+
+        Assert.Contains(diagnostics, d => d.Code == "ETD005");
     }
 
     [Fact]
@@ -455,5 +485,130 @@ public sealed class EchoTaleDslParserTests
         Assert.Single(document.Rooms);
         Assert.Single(document.Objects);
         Assert.Single(document.Rules);
+    }
+
+    [Fact]
+    public void Parse_ShouldSupportRuleOnce_HiddenReveal_Ambient_Default_AndStatefulDesc()
+    {
+        const string script = """
+                              game "X" start laboratory
+                              author = "squid"
+                              version= "v1.0.0"
+                              sounds { page = "page.wav" }
+                              room laboratory {
+                                name "Laboratory"
+                                desc "A dusty room."
+                                ambient "<a>Dust dances in the air."
+                              }
+                              room corridor {
+                                name "Corridor"
+                                exit north -> study locked true
+                              }
+                              room study { name "Study" }
+
+                              object coin {
+                                name "Coin"
+                                hidden true
+                              }
+
+                              object chair {
+                                name "Chair"
+                                desc "A wobbly chair."
+                                default {
+                                  do print "Nothing happens."
+                                }
+                              }
+
+                              object cabinet {
+                                name "Cabinet"
+                                desc {
+                                  if isOpen cabinet false
+                                  "<a>It is closed."
+                                  else
+                                  "<a>It is open."
+                                }
+                              }
+
+                              rule first_enter_lab once {
+                                when enter laboratory
+                                do print "A cold draft brushes your neck."
+                              }
+
+                              rule reveal_coin {
+                                when take chair
+                                do reveal coin in laboratory
+                              }
+                              """;
+
+        var document = EchoTaleDslParser.Parse(script);
+        Assert.Equal("squid", document.Author);
+        Assert.Equal("v1.0.0", document.Version);
+
+        var firstEnter = Assert.Single(document.Rules, r => r.Id == "first_enter_lab");
+        Assert.True(firstEnter.Once);
+
+        var coin = Assert.Single(document.Objects, o => o.Id == "coin");
+        Assert.True(coin.Hidden);
+
+        var chair = Assert.Single(document.Objects, o => o.Id == "chair");
+        Assert.Single(chair.DefaultActions);
+        Assert.IsType<PrintAction>(chair.DefaultActions[0]);
+
+        var cabinet = Assert.Single(document.Objects, o => o.Id == "cabinet");
+        Assert.NotNull(cabinet.StatefulDescription);
+        Assert.Equal("cabinet", cabinet.StatefulDescription!.ConditionObjectId);
+        Assert.False(cabinet.StatefulDescription.ConditionIsOpen);
+        Assert.Equal("<a>It is closed.", cabinet.StatefulDescription.WhenText);
+        Assert.Equal("<a>It is open.", cabinet.StatefulDescription.ElseText);
+
+        var lab = Assert.Single(document.Rooms, r => r.Id == "laboratory");
+        Assert.Equal("<a>Dust dances in the air.", lab.Ambient);
+
+        var revealCoin = Assert.Single(document.Rules, r => r.Id == "reveal_coin");
+        var reveal = Assert.IsType<RevealInRoomAction>(revealCoin.Actions[0]);
+        Assert.Equal("coin", reveal.ObjectId);
+        Assert.Equal("laboratory", reveal.RoomId);
+    }
+
+    [Fact]
+    public void Validate_ShouldReportUnknownObject_WhenRevealUsesMissingObject()
+    {
+        const string script = """
+                              game "X" start laboratory
+                              room laboratory { name "Lab" }
+                              object key { name "Key" }
+                              rule r1 {
+                                when use key
+                                do reveal missing in laboratory
+                              }
+                              """;
+
+        var document = EchoTaleDslParser.Parse(script);
+        var diagnostics = new DslSemanticValidator().Validate(document, script);
+
+        Assert.Contains(diagnostics, d => d.Code == "ETD001");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportUnknownObject_WhenStatefulDescriptionReferencesMissingObject()
+    {
+        const string script = """
+                              game "X" start laboratory
+                              room laboratory { name "Lab" }
+                              object cabinet {
+                                name "Cabinet"
+                                desc {
+                                  if isOpen missing false
+                                  "Closed."
+                                  else
+                                  "Open."
+                                }
+                              }
+                              """;
+
+        var document = EchoTaleDslParser.Parse(script);
+        var diagnostics = new DslSemanticValidator().Validate(document, script);
+
+        Assert.Contains(diagnostics, d => d.Code == "ETD001");
     }
 }

@@ -45,6 +45,8 @@ A valid file starts with a `game` header and then zero or more top-level declara
 
 ```dsl
 game "My Story" start foyer
+author = "squid"
+version = "v1.0.0"
 
 include "common/base.etale"
 
@@ -81,12 +83,19 @@ rule intro_rule { ... }
 Supported top-level blocks/statements:
 
 - `include "path.etale"`
+- `author = "name"` (optional metadata)
+- `version = "semver-or-label"` (optional metadata)
 - `sounds { ... }`
 - `music { ... }`
 - `player { ... }`
 - `room <id> { ... }`
 - `object <id> { ... }`
 - `rule <id> { ... }`
+
+Metadata notes:
+
+- `author` and `version` are optional.
+- If repeated, the last declaration wins.
 
 ## Rooms
 
@@ -374,6 +383,8 @@ This is the recommended complete workflow for a first story.
 
 ```dsl
 game "The Crooked House" start laboratory
+author = "squid"
+version = "v1.0.0"
 include "common/items.etale"
 ```
 
@@ -509,6 +520,8 @@ Always validate after edits:
 
 ```dsl
 game "The Crooked House" start laboratory
+author = "squid"
+version = "v1.0.0"
 include "common/items.etale"
 
 sounds {

@@ -5,5 +5,6 @@ public sealed record RoomDeclaration(
     string? Name,
     string? Image,
     string? Description,
+    string? Ambient,
     IReadOnlyList<ExitDeclaration> Exits,
     IReadOnlyList<string> Contains);

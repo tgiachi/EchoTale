@@ -44,26 +44,57 @@ public static class EchoTaleDslParser
         from startRoom in Identifier
         select (title, startRoom);
 
-    private static readonly Parser<(RoomDeclaration? Room, ObjectDeclaration? Object, RuleDeclaration? Rule, PlayerDeclaration? Player, string? Include, IReadOnlyList<SoundDeclaration>? Sounds, IReadOnlyList<MusicDeclaration>? Music)> Declaration =
+    private static readonly Parser<(RoomDeclaration? Room, ObjectDeclaration? Object, RuleDeclaration? Rule, PlayerDeclaration? Player, string? Include, string? Author, string? Version, IReadOnlyList<VoiceDeclaration>? Voices, IReadOnlyList<SoundDeclaration>? Sounds, IReadOnlyList<MusicDeclaration>? Music)> Declaration =
         (from room in Sprache.Parse.Ref(() => Room)
-            select (room, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+            select (room, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
         .Or(from obj in Sprache.Parse.Ref(() => GameObject)
-            select ((RoomDeclaration?)null, obj, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+            select ((RoomDeclaration?)null, obj, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
         .Or(from rule in Sprache.Parse.Ref(() => Rule)
-            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, rule, (PlayerDeclaration?)null, (string?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, rule, (PlayerDeclaration?)null, (string?)null, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
         .Or(from player in Sprache.Parse.Ref(() => Player)
-            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, player, (string?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, player, (string?)null, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
         .Or(from include in Sprache.Parse.Ref(() => Include)
-            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, include, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, include, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+        .Or(from author in Sprache.Parse.Ref(() => Author)
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, author, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+        .Or(from version in Sprache.Parse.Ref(() => Version)
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (string?)null, version, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
+        .Or(from voices in Sprache.Parse.Ref(() => VoicesBlock)
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (string?)null, (string?)null, voices, (IReadOnlyList<SoundDeclaration>?)null, (IReadOnlyList<MusicDeclaration>?)null))
         .Or(from sounds in Sprache.Parse.Ref(() => SoundsBlock)
-            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, sounds, (IReadOnlyList<MusicDeclaration>?)null))
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, sounds, (IReadOnlyList<MusicDeclaration>?)null))
         .Or(from music in Sprache.Parse.Ref(() => MusicBlock)
-            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (IReadOnlyList<SoundDeclaration>?)null, music));
+            select ((RoomDeclaration?)null, (ObjectDeclaration?)null, (RuleDeclaration?)null, (PlayerDeclaration?)null, (string?)null, (string?)null, (string?)null, (IReadOnlyList<VoiceDeclaration>?)null, (IReadOnlyList<SoundDeclaration>?)null, music));
 
     private static readonly Parser<string> Include =
         from include in Keyword("include")
         from path in StringLiteral
         select path;
+
+    private static readonly Parser<string> Author =
+        from author in Keyword("author")
+        from assign in Sprache.Parse.Char('=').Token()
+        from value in StringLiteral
+        select value;
+
+    private static readonly Parser<string> Version =
+        from version in Keyword("version")
+        from assign in Sprache.Parse.Char('=').Token()
+        from value in StringLiteral
+        select value;
+
+    private static readonly Parser<VoiceDeclaration> VoiceEntry =
+        from id in Identifier
+        from assign in Sprache.Parse.Char('=').Token()
+        from name in StringLiteral
+        select new VoiceDeclaration(id, name);
+
+    private static readonly Parser<IReadOnlyList<VoiceDeclaration>> VoicesBlock =
+        from voices in Keyword("voices")
+        from open in Sprache.Parse.Char('{').Token()
+        from entries in VoiceEntry.AtLeastOnce()
+        from close in Sprache.Parse.Char('}').Token()
+        select entries.ToList();
 
     private static readonly Parser<SoundDeclaration> SoundEntry =
         from id in Identifier
@@ -99,21 +130,24 @@ public static class EchoTaleDslParser
         from close in Sprache.Parse.Char('}').Token()
         select BuildRoom(id, statements);
 
-    private static readonly Parser<(string? Name, string? Image, string? Description, ExitDeclaration? Exit, string? Contains)> RoomStatement =
+    private static readonly Parser<(string? Name, string? Image, string? Description, string? Ambient, ExitDeclaration? Exit, string? Contains)> RoomStatement =
         (from name in Keyword("name")
             from value in StringLiteral
-            select (value, (string?)null, (string?)null, (ExitDeclaration?)null, (string?)null))
+            select (value, (string?)null, (string?)null, (string?)null, (ExitDeclaration?)null, (string?)null))
         .Or(from image in Keyword("image")
             from value in StringLiteral
-            select ((string?)null, value, (string?)null, (ExitDeclaration?)null, (string?)null))
+            select ((string?)null, value, (string?)null, (string?)null, (ExitDeclaration?)null, (string?)null))
         .Or(from desc in Keyword("desc")
             from value in StringLiteral
-            select ((string?)null, (string?)null, value, (ExitDeclaration?)null, (string?)null))
+            select ((string?)null, (string?)null, value, (string?)null, (ExitDeclaration?)null, (string?)null))
+        .Or(from ambient in Keyword("ambient")
+            from value in StringLiteral
+            select ((string?)null, (string?)null, (string?)null, value, (ExitDeclaration?)null, (string?)null))
         .Or(from exit in Sprache.Parse.Ref(() => Exit)
-            select ((string?)null, (string?)null, (string?)null, exit, (string?)null))
+            select ((string?)null, (string?)null, (string?)null, (string?)null, exit, (string?)null))
         .Or(from contains in Keyword("contains")
             from objectId in Identifier
-            select ((string?)null, (string?)null, (string?)null, (ExitDeclaration?)null, objectId));
+            select ((string?)null, (string?)null, (string?)null, (string?)null, (ExitDeclaration?)null, objectId));
 
     private static readonly Parser<ExitDeclaration> Exit =
         from exit in Keyword("exit")
@@ -165,33 +199,62 @@ public static class EchoTaleDslParser
         from close in Sprache.Parse.Char('}').Token()
         select BuildObject(id, statements);
 
-    private static readonly Parser<(string? Name, string? Description, bool? Portable, bool? Container, bool? Openable, bool? Locked, bool? IsOpen, string? Contains, IReadOnlyList<ObjectVerbDeclaration>? Verbs)> ObjectStatement =
+    private static readonly Parser<ObjectStatefulDescription> ObjectStatefulDescriptionBlock =
+        from open in Sprache.Parse.Char('{').Token()
+        from ifKeyword in Keyword("if")
+        from isOpen in Keyword("isOpen")
+        from objectId in Identifier
+        from expected in Boolean
+        from whenText in StringLiteral
+        from elseKeyword in Keyword("else")
+        from elseText in StringLiteral
+        from close in Sprache.Parse.Char('}').Token()
+        select new ObjectStatefulDescription(objectId, expected, whenText, elseText);
+
+    private static readonly Parser<IReadOnlyList<RuleAction>> ObjectDefaultBlock =
+        from defaultKeyword in Keyword("default")
+        from open in Sprache.Parse.Char('{').Token()
+        from actions in (from doKeyword in Keyword("do")
+            from action in Sprache.Parse.Ref(() => RuleAction)
+            select action).AtLeastOnce()
+        from close in Sprache.Parse.Char('}').Token()
+        select actions.ToList();
+
+    private static readonly Parser<(string? Name, string? Description, ObjectStatefulDescription? StatefulDescription, bool? Portable, bool? Container, bool? Openable, bool? Locked, bool? IsOpen, bool? Hidden, string? Contains, IReadOnlyList<RuleAction>? DefaultActions, IReadOnlyList<ObjectVerbDeclaration>? Verbs)> ObjectStatement =
         (from name in Keyword("name")
             from value in StringLiteral
-            select (value, (string?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select (value, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from desc in Keyword("desc")
             from value in StringLiteral
-            select ((string?)null, value, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, value, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+        .Or(from desc in Keyword("desc")
+            from value in Sprache.Parse.Ref(() => ObjectStatefulDescriptionBlock)
+            select ((string?)null, (string?)null, value, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from portable in Keyword("portable")
             from value in Boolean
-            select ((string?)null, (string?)null, (bool?)value, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)value, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from container in Keyword("container")
             from value in Boolean
-            select ((string?)null, (string?)null, (bool?)null, (bool?)value, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)value, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from openable in Keyword("openable")
             from value in Boolean
-            select ((string?)null, (string?)null, (bool?)null, (bool?)null, (bool?)value, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)value, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from locked in Keyword("locked")
             from value in Boolean
-            select ((string?)null, (string?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)value, (bool?)null, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)value, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from isOpen in Keyword("isOpen")
             from value in Boolean
-            select ((string?)null, (string?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)value, (string?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)value, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+        .Or(from hidden in Keyword("hidden")
+            from value in Boolean
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)value, (string?)null, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from contains in Keyword("contains")
             from value in Identifier
-            select ((string?)null, (string?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, value, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, value, (IReadOnlyList<RuleAction>?)null, (IReadOnlyList<ObjectVerbDeclaration>?)null))
+        .Or(from defaultActions in Sprache.Parse.Ref(() => ObjectDefaultBlock)
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, defaultActions, (IReadOnlyList<ObjectVerbDeclaration>?)null))
         .Or(from verbs in Sprache.Parse.Ref(() => ObjectVerbsBlock)
-            select ((string?)null, (string?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, verbs));
+            select ((string?)null, (string?)null, (ObjectStatefulDescription?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (bool?)null, (string?)null, (IReadOnlyList<RuleAction>?)null, verbs));
 
     private static readonly Parser<IReadOnlyList<ObjectVerbDeclaration>> ObjectVerbsBlock =
         from verbs in Keyword("verbs")
@@ -224,6 +287,7 @@ public static class EchoTaleDslParser
     private static readonly Parser<RuleDeclaration> Rule =
         from rule in Keyword("rule")
         from id in Identifier
+        from once in Keyword("once").Optional()
         from open in Sprache.Parse.Char('{').Token()
         from when in Keyword("when")
         from trigger in Sprache.Parse.Ref(() => RuleTrigger)
@@ -234,7 +298,7 @@ public static class EchoTaleDslParser
             from action in Sprache.Parse.Ref(() => RuleAction)
             select action).AtLeastOnce()
         from close in Sprache.Parse.Char('}').Token()
-        select new RuleDeclaration(id, trigger, conditions.ToList(), actions.ToList());
+        select new RuleDeclaration(id, once.IsDefined, trigger, conditions.ToList(), actions.ToList());
 
     private static readonly Parser<RuleTrigger> RuleTrigger =
         (from command in Keyword("command")
@@ -309,6 +373,11 @@ public static class EchoTaleDslParser
             from inKeyword in Keyword("in")
             from roomId in Identifier
             select (RuleAction)new SpawnInRoomAction(objectId, roomId))
+        .Or(from reveal in Keyword("reveal")
+            from objectId in Identifier
+            from inKeyword in Keyword("in")
+            from roomId in Identifier
+            select (RuleAction)new RevealInRoomAction(objectId, roomId))
         .Or(from set in Keyword("set")
             from flag in Keyword("flag")
             from flagId in Identifier
@@ -464,17 +533,20 @@ public static class EchoTaleDslParser
     private static GameDocument BuildDocument(
         string title,
         string startRoom,
-        IEnumerable<(RoomDeclaration? Room, ObjectDeclaration? Object, RuleDeclaration? Rule, PlayerDeclaration? Player, string? Include, IReadOnlyList<SoundDeclaration>? Sounds, IReadOnlyList<MusicDeclaration>? Music)> declarations)
+        IEnumerable<(RoomDeclaration? Room, ObjectDeclaration? Object, RuleDeclaration? Rule, PlayerDeclaration? Player, string? Include, string? Author, string? Version, IReadOnlyList<VoiceDeclaration>? Voices, IReadOnlyList<SoundDeclaration>? Sounds, IReadOnlyList<MusicDeclaration>? Music)> declarations)
     {
         List<RoomDeclaration> rooms = new();
         List<ObjectDeclaration> objects = new();
         List<RuleDeclaration> rules = new();
         List<string> includes = new();
+        string? author = null;
+        string? version = null;
+        Dictionary<string, string> voices = new(StringComparer.Ordinal);
         Dictionary<string, string> sounds = new(StringComparer.Ordinal);
         Dictionary<string, string> music = new(StringComparer.Ordinal);
         PlayerDeclaration? player = null;
 
-        foreach ((RoomDeclaration? room, ObjectDeclaration? obj, RuleDeclaration? rule, PlayerDeclaration? playerDecl, string? include, IReadOnlyList<SoundDeclaration>? soundsBlock, IReadOnlyList<MusicDeclaration>? musicBlock) declaration in declarations)
+        foreach ((RoomDeclaration? room, ObjectDeclaration? obj, RuleDeclaration? rule, PlayerDeclaration? playerDecl, string? include, string? authorDeclaration, string? versionDeclaration, IReadOnlyList<VoiceDeclaration>? voicesBlock, IReadOnlyList<SoundDeclaration>? soundsBlock, IReadOnlyList<MusicDeclaration>? musicBlock) declaration in declarations)
         {
             if (declaration.room is not null)
             {
@@ -501,6 +573,24 @@ public static class EchoTaleDslParser
                 includes.Add(declaration.include);
             }
 
+            if (declaration.authorDeclaration is not null)
+            {
+                author = declaration.authorDeclaration;
+            }
+
+            if (declaration.versionDeclaration is not null)
+            {
+                version = declaration.versionDeclaration;
+            }
+
+            if (declaration.voicesBlock is not null)
+            {
+                foreach (VoiceDeclaration blockVoice in declaration.voicesBlock)
+                {
+                    voices[blockVoice.Id] = blockVoice.Name;
+                }
+            }
+
             if (declaration.soundsBlock is not null)
             {
                 foreach (SoundDeclaration blockSound in declaration.soundsBlock)
@@ -518,20 +608,21 @@ public static class EchoTaleDslParser
             }
         }
 
-        return new GameDocument(title, player?.StartRoomId ?? startRoom, player, includes, sounds, music, rooms, objects, rules);
+        return new GameDocument(title, author, version, player?.StartRoomId ?? startRoom, player, includes, voices, sounds, music, rooms, objects, rules);
     }
 
     private static RoomDeclaration BuildRoom(
         string id,
-        IEnumerable<(string? Name, string? Image, string? Description, ExitDeclaration? Exit, string? Contains)> statements)
+        IEnumerable<(string? Name, string? Image, string? Description, string? Ambient, ExitDeclaration? Exit, string? Contains)> statements)
     {
         string? name = null;
         string? image = null;
         string? description = null;
+        string? ambient = null;
         List<ExitDeclaration> exits = new();
         List<string> contains = new();
 
-        foreach ((string? stmtName, string? stmtImage, string? stmtDesc, ExitDeclaration? stmtExit, string? stmtContains) in statements)
+        foreach ((string? stmtName, string? stmtImage, string? stmtDesc, string? stmtAmbient, ExitDeclaration? stmtExit, string? stmtContains) in statements)
         {
             if (stmtName is not null)
             {
@@ -548,6 +639,11 @@ public static class EchoTaleDslParser
                 description = stmtDesc;
             }
 
+            if (stmtAmbient is not null)
+            {
+                ambient = stmtAmbient;
+            }
+
             if (stmtExit is not null)
             {
                 exits.Add(stmtExit);
@@ -559,24 +655,27 @@ public static class EchoTaleDslParser
             }
         }
 
-        return new RoomDeclaration(id, name, image, description, exits, contains);
+        return new RoomDeclaration(id, name, image, description, ambient, exits, contains);
     }
 
     private static ObjectDeclaration BuildObject(
         string id,
-        IEnumerable<(string? Name, string? Description, bool? Portable, bool? Container, bool? Openable, bool? Locked, bool? IsOpen, string? Contains, IReadOnlyList<ObjectVerbDeclaration>? Verbs)> statements)
+        IEnumerable<(string? Name, string? Description, ObjectStatefulDescription? StatefulDescription, bool? Portable, bool? Container, bool? Openable, bool? Locked, bool? IsOpen, bool? Hidden, string? Contains, IReadOnlyList<RuleAction>? DefaultActions, IReadOnlyList<ObjectVerbDeclaration>? Verbs)> statements)
     {
         string? name = null;
         string? description = null;
+        ObjectStatefulDescription? statefulDescription = null;
         bool? portable = null;
         bool? container = null;
         bool? openable = null;
         bool? locked = null;
         bool? isOpen = null;
+        bool? hidden = null;
         List<string> contains = new();
+        List<RuleAction> defaultActions = new();
         List<ObjectVerbDeclaration> verbs = new();
 
-        foreach ((string? stmtName, string? stmtDesc, bool? stmtPortable, bool? stmtContainer, bool? stmtOpenable, bool? stmtLocked, bool? stmtIsOpen, string? stmtContains, IReadOnlyList<ObjectVerbDeclaration>? stmtVerbs) in statements)
+        foreach ((string? stmtName, string? stmtDesc, ObjectStatefulDescription? stmtStatefulDescription, bool? stmtPortable, bool? stmtContainer, bool? stmtOpenable, bool? stmtLocked, bool? stmtIsOpen, bool? stmtHidden, string? stmtContains, IReadOnlyList<RuleAction>? stmtDefaultActions, IReadOnlyList<ObjectVerbDeclaration>? stmtVerbs) in statements)
         {
             if (stmtName is not null)
             {
@@ -586,6 +685,13 @@ public static class EchoTaleDslParser
             if (stmtDesc is not null)
             {
                 description = stmtDesc;
+                statefulDescription = null;
+            }
+
+            if (stmtStatefulDescription is not null)
+            {
+                statefulDescription = stmtStatefulDescription;
+                description = null;
             }
 
             if (stmtPortable.HasValue)
@@ -613,9 +719,19 @@ public static class EchoTaleDslParser
                 isOpen = stmtIsOpen.Value;
             }
 
+            if (stmtHidden.HasValue)
+            {
+                hidden = stmtHidden.Value;
+            }
+
             if (stmtContains is not null)
             {
                 contains.Add(stmtContains);
+            }
+
+            if (stmtDefaultActions is not null)
+            {
+                defaultActions = stmtDefaultActions.ToList();
             }
 
             if (stmtVerbs is not null)
@@ -624,7 +740,7 @@ public static class EchoTaleDslParser
             }
         }
 
-        return new ObjectDeclaration(id, name, description, portable, container, openable, locked, isOpen, contains, verbs);
+        return new ObjectDeclaration(id, name, description, statefulDescription, portable, container, openable, locked, isOpen, hidden, contains, defaultActions, verbs);
     }
 
     private static ObjectVerbDeclaration BuildObjectVerb(string verb, string? variable, IEnumerable<(int Kind, RuleCondition? Condition, RuleAction? Action)> statements)

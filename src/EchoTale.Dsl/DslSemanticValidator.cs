@@ -15,12 +15,23 @@ public sealed class DslSemanticValidator
 
         HashSet<string> roomIds = document.Rooms.Select(r => r.Id).ToHashSet(StringComparer.Ordinal);
         HashSet<string> objectIds = document.Objects.Select(o => o.Id).ToHashSet(StringComparer.Ordinal);
+        HashSet<string> voiceIds = document.Voices.Keys.ToHashSet(StringComparer.Ordinal);
         HashSet<string> soundIds = document.Sounds.Keys.ToHashSet(StringComparer.Ordinal);
         HashSet<string> musicIds = document.Music.Keys.ToHashSet(StringComparer.Ordinal);
+
+        ValidateVoiceTag(document.GameTitle, "game title");
 
         HashSet<string> placedObjectIds = new(StringComparer.Ordinal);
         foreach (RoomDeclaration room in document.Rooms)
         {
+            ValidateVoiceTag(room.Name, $"room '{room.Id}' name");
+            ValidateVoiceTag(room.Description, $"room '{room.Id}' desc");
+            ValidateVoiceTag(room.Ambient, $"room '{room.Id}' ambient");
+            foreach (ExitDeclaration exit in room.Exits)
+            {
+                ValidateVoiceTag(exit.LockedMessage, $"room '{room.Id}' exit '{exit.Direction}' locked message");
+            }
+
             foreach (string objectId in room.Contains)
             {
                 placedObjectIds.Add(objectId);
@@ -46,6 +57,19 @@ public sealed class DslSemanticValidator
 
         foreach (ObjectDeclaration obj in document.Objects)
         {
+            ValidateVoiceTag(obj.Name, $"object '{obj.Id}' name");
+            ValidateVoiceTag(obj.Description, $"object '{obj.Id}' desc");
+            if (obj.StatefulDescription is not null)
+            {
+                if (!objectIds.Contains(obj.StatefulDescription.ConditionObjectId))
+                {
+                    yieldDiag("ETD001", $"Unknown object '{obj.StatefulDescription.ConditionObjectId}'.", FindGlobalLocation(lines, $"isOpen {obj.StatefulDescription.ConditionObjectId}"), document.Includes.Count > 0);
+                }
+
+                ValidateVoiceTag(obj.StatefulDescription.WhenText, $"object '{obj.Id}' stateful desc true branch");
+                ValidateVoiceTag(obj.StatefulDescription.ElseText, $"object '{obj.Id}' stateful desc else branch");
+            }
+
             foreach (string childObjectId in obj.Contains)
             {
                 placedObjectIds.Add(childObjectId);
@@ -92,9 +116,11 @@ public sealed class DslSemanticValidator
                     }
                 }
 
-                ValidateVerbActions(obj, verb, verb.Actions, objectIds, roomIds, soundIds, musicIds, lines, yieldDiag, document.Includes.Count > 0);
-                ValidateVerbActions(obj, verb, verb.ElseActions, objectIds, roomIds, soundIds, musicIds, lines, yieldDiag, document.Includes.Count > 0);
+                ValidateObjectActions(obj.Id, $"verb '{verb.Verb}'", verb.Actions, objectIds, roomIds, soundIds, musicIds, voiceIds, lines, yieldDiag, document.Includes.Count > 0);
+                ValidateObjectActions(obj.Id, $"verb '{verb.Verb}' else", verb.ElseActions, objectIds, roomIds, soundIds, musicIds, voiceIds, lines, yieldDiag, document.Includes.Count > 0);
             }
+
+            ValidateObjectActions(obj.Id, "default", obj.DefaultActions, objectIds, roomIds, soundIds, musicIds, voiceIds, lines, yieldDiag, document.Includes.Count > 0);
         }
 
         if (document.Player is not null)
@@ -213,12 +239,29 @@ public sealed class DslSemanticValidator
                         }
 
                         break;
+                    case RevealInRoomAction reveal:
+                        if (!objectIds.Contains(reveal.ObjectId))
+                        {
+                            yieldDiag("ETD001", UnknownObjectMessage(reveal.ObjectId, rule.Id), FindRuleLocation(lines, ruleSpans, rule.Id, $"reveal {reveal.ObjectId}"), document.Includes.Count > 0);
+                        }
+
+                        if (!roomIds.Contains(reveal.RoomId))
+                        {
+                            yieldDiag("ETD002", UnknownRoomMessage(reveal.RoomId, rule.Id), FindRuleLocation(lines, ruleSpans, rule.Id, $"in {reveal.RoomId}"), document.Includes.Count > 0);
+                        }
+
+                        break;
                     case PlaySoundAction playSound when !soundIds.Contains(playSound.SoundId):
                         yieldDiag("ETD003", UnknownSoundMessage(playSound.SoundId, rule.Id), FindRuleLocation(lines, ruleSpans, rule.Id, $"sound {playSound.SoundId}"), false);
                         break;
                     case PlayMusicAction playMusic when !musicIds.Contains(playMusic.MusicId):
                         yieldDiag("ETD004", UnknownMusicMessage(playMusic.MusicId, rule.Id), FindRuleLocation(lines, ruleSpans, rule.Id, $"playMusic {playMusic.MusicId}"), false);
                         break;
+                }
+
+                if (action is PrintAction print)
+                {
+                    ValidateVoiceTag(print.Text, $"rule '{rule.Id}' print");
                 }
             }
         }
@@ -229,6 +272,24 @@ public sealed class DslSemanticValidator
         {
             DslDiagnosticSeverity severity = couldComeFromInclude ? DslDiagnosticSeverity.Warning : DslDiagnosticSeverity.Error;
             collected.Add(new DslDiagnostic(code, severity, message, location));
+        }
+
+        void ValidateVoiceTag(string? text, string context)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            if (!TryExtractVoiceId(text, out string? voiceId))
+            {
+                return;
+            }
+
+            if (!voiceIds.Contains(voiceId!))
+            {
+                yieldDiag("ETD005", $"Unknown voice '{voiceId}' in {context}.", FindGlobalLocation(lines, $"<{voiceId}>"), false);
+            }
         }
     }
 
@@ -360,14 +421,63 @@ public sealed class DslSemanticValidator
         return null;
     }
 
-    private static void ValidateVerbActions(
-        ObjectDeclaration obj,
-        ObjectVerbDeclaration verb,
+    private static bool TryExtractVoiceId(string text, out string? voiceId)
+    {
+        voiceId = null;
+        if (text.Length < 4 || text[0] != '<')
+        {
+            return false;
+        }
+
+        int end = text.IndexOf('>');
+        if (end <= 1)
+        {
+            return false;
+        }
+
+        string candidate = text[1..end];
+        if (!IsValidIdentifier(candidate))
+        {
+            return false;
+        }
+
+        voiceId = candidate;
+        return true;
+    }
+
+    private static bool IsValidIdentifier(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        if (!(char.IsLetter(value[0]) || value[0] == '_'))
+        {
+            return false;
+        }
+
+        for (int i = 1; i < value.Length; i++)
+        {
+            char c = value[i];
+            if (!(char.IsLetterOrDigit(c) || c == '_'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void ValidateObjectActions(
+        string objectId,
+        string actionScope,
         IReadOnlyList<RuleAction> actions,
         HashSet<string> objectIds,
         HashSet<string> roomIds,
         HashSet<string> soundIds,
         HashSet<string> musicIds,
+        HashSet<string> voiceIds,
         string[] lines,
         Action<string, string, SourceLocation?, bool> emit,
         bool couldComeFromInclude)
@@ -377,28 +487,43 @@ public sealed class DslSemanticValidator
             switch (action)
             {
                 case OpenAction open when !objectIds.Contains(open.ObjectId):
-                    emit("ETD001", $"Unknown object '{open.ObjectId}' in object '{obj.Id}' verb '{verb.Verb}'.", FindGlobalLocation(lines, $"open {open.ObjectId}"), couldComeFromInclude);
+                    emit("ETD001", $"Unknown object '{open.ObjectId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"open {open.ObjectId}"), couldComeFromInclude);
                     break;
                 case UnlockExitAction unlock when !roomIds.Contains(unlock.RoomId):
-                    emit("ETD002", $"Unknown room '{unlock.RoomId}' in object '{obj.Id}' verb '{verb.Verb}'.", FindGlobalLocation(lines, $"unlock exit {unlock.RoomId}"), couldComeFromInclude);
+                    emit("ETD002", $"Unknown room '{unlock.RoomId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"unlock exit {unlock.RoomId}"), couldComeFromInclude);
                     break;
                 case SpawnInRoomAction spawn:
                     if (!objectIds.Contains(spawn.ObjectId))
                     {
-                        emit("ETD001", $"Unknown object '{spawn.ObjectId}' in object '{obj.Id}' verb '{verb.Verb}'.", FindGlobalLocation(lines, $"spawn {spawn.ObjectId}"), couldComeFromInclude);
+                        emit("ETD001", $"Unknown object '{spawn.ObjectId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"spawn {spawn.ObjectId}"), couldComeFromInclude);
                     }
 
                     if (!roomIds.Contains(spawn.RoomId))
                     {
-                        emit("ETD002", $"Unknown room '{spawn.RoomId}' in object '{obj.Id}' verb '{verb.Verb}'.", FindGlobalLocation(lines, $"in {spawn.RoomId}"), couldComeFromInclude);
+                        emit("ETD002", $"Unknown room '{spawn.RoomId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"in {spawn.RoomId}"), couldComeFromInclude);
+                    }
+
+                    break;
+                case RevealInRoomAction reveal:
+                    if (!objectIds.Contains(reveal.ObjectId))
+                    {
+                        emit("ETD001", $"Unknown object '{reveal.ObjectId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"reveal {reveal.ObjectId}"), couldComeFromInclude);
+                    }
+
+                    if (!roomIds.Contains(reveal.RoomId))
+                    {
+                        emit("ETD002", $"Unknown room '{reveal.RoomId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"in {reveal.RoomId}"), couldComeFromInclude);
                     }
 
                     break;
                 case PlaySoundAction playSound when !soundIds.Contains(playSound.SoundId):
-                    emit("ETD003", $"Unknown sound '{playSound.SoundId}' in object '{obj.Id}' verb '{verb.Verb}'.", FindGlobalLocation(lines, $"sound {playSound.SoundId}"), false);
+                    emit("ETD003", $"Unknown sound '{playSound.SoundId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"sound {playSound.SoundId}"), false);
                     break;
                 case PlayMusicAction playMusic when !musicIds.Contains(playMusic.MusicId):
-                    emit("ETD004", $"Unknown music '{playMusic.MusicId}' in object '{obj.Id}' verb '{verb.Verb}'.", FindGlobalLocation(lines, $"playMusic {playMusic.MusicId}"), false);
+                    emit("ETD004", $"Unknown music '{playMusic.MusicId}' in object '{objectId}' {actionScope}.", FindGlobalLocation(lines, $"playMusic {playMusic.MusicId}"), false);
+                    break;
+                case PrintAction print when TryExtractVoiceId(print.Text, out string? voiceId) && !voiceIds.Contains(voiceId!):
+                    emit("ETD005", $"Unknown voice '{voiceId}' in object '{objectId}' {actionScope} print.", FindGlobalLocation(lines, $"<{voiceId}>"), false);
                     break;
             }
         }

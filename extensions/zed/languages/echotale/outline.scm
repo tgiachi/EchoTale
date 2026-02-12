@@ -1,15 +1,11 @@
-(game_declaration) @definition.namespace
-
 (room_block
-  id: (identifier) @name) @definition.class
+  id: (identifier) @name) @item
 
 (object_block
-  id: (identifier) @name) @definition.class
+  id: (identifier) @name) @item
 
 (rule_block
-  id: (identifier) @name) @definition.function
+  id: (identifier) @name) @item
 
 (verb_def
-  verb: (identifier) @name) @definition.method
-
-(player_block) @definition.class
+  verb: (identifier) @name) @item

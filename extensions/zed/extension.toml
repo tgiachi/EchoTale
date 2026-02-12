@@ -1,10 +1,11 @@
-[package]
-name = "echotale"
+id = "echotale"
+name = "EchoTale"
 version = "0.1.0"
 description = "EchoTale DSL language support for Zed"
 authors = ["tgiachi"]
 repository = "https://github.com/tgiachi/EchoTale"
+schema_version = 1
 
 [grammars.echotale]
-repository = "https://github.com/tgiachi/EchoTale"
-commit = ""
+repository = "file:///Users/squid/projects/personal/EchoTale/tree-sitter-echotale"
+rev = "da4a53491a75eec11cfa0088738ce5a6c9ccaeb1"

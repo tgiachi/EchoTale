@@ -52,11 +52,12 @@
   "look"
   "use"
   "take"
-  "tick"
   "on"
   "command"
   "chance"
 ] @keyword.control
+
+(tick_trigger) @keyword.control
 
 ; ── Action keywords ──────────────────────────────────────
 
@@ -71,11 +72,12 @@
   "unlock"
   "sound"
   "playMusic"
-  "stopMusic"
   "is"
   "has"
   "exitLocked"
 ] @keyword.operator
+
+(stop_music_action) @keyword.operator
 
 ; ── Operators ────────────────────────────────────────────
 

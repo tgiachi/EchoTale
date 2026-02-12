@@ -12,12 +12,12 @@ public class RootScreen : ScreenObject
         _mainSurface = new(GameSettings.GAME_WIDTH, GameSettings.GAME_HEIGHT);
 
         // Fill the surface with random characters and colors
-        _mainSurface.FillWithRandomGarbage(_mainSurface.Font);
+       // _mainSurface.FillWithRandomGarbage(_mainSurface.Font);
 
         // Create a rectangle box that has a violet foreground and black background.
         // Characters are reset to 0 and mirroring is set to none. FillWithRandomGarbage will
         // select random characters and mirroring, so this resets it within the box.
-        _mainSurface.Fill(new(3, 3, 23, 3), Color.Violet, Color.Black, 0, Mirror.None);
+       // _mainSurface.Fill(new(3, 3, 23, 3), Color.Violet, Color.Black, 0, Mirror.None);
 
         // Print some text at (4, 4) using the foreground and background already there (violet and black)
         _mainSurface.Print(4, 4, "Hello from SadConsole");

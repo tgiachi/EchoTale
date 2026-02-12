@@ -8,9 +8,20 @@ public class ParserBenchmarks
     private const string Script = """
                                   game "La Casa Storta" start laboratorio
                                   include "common/items.etale"
-                                  sound unlock = "unlock.wav"
-                                  sound door = "door_creak.wav"
-                                  sound coin = "coin_drop.wav"
+                                  author = "squid"
+                                  version = "v1.0.0"
+                                  voices {
+                                    a = "narratore"
+                                    b = "oggetti"
+                                  }
+                                  sounds {
+                                    unlock = "unlock.wav"
+                                    door = "door_creak.wav"
+                                    coin = "coin_drop.wav"
+                                  }
+                                  music {
+                                    lab = "lab_theme.ogg"
+                                  }
 
                                   player {
                                     start laboratorio
@@ -20,7 +31,8 @@ public class ParserBenchmarks
 
                                   room laboratorio {
                                     name "Laboratorio" image "laboratorio.png"
-                                    desc "Una stanza polverosa. Una sedia e un armadietto."
+                                    desc "<a>Una stanza polverosa. Una sedia e un armadietto."
+                                    ambient "<a>La polvere danza nell'aria."
                                     exit east -> corridoio
                                     contains sedia
                                     contains armadietto
@@ -44,17 +56,35 @@ public class ParserBenchmarks
                                     name "Sedia"
                                     desc "Una sedia traballante."
                                     portable false
+                                    default {
+                                      do print "Non succede nulla."
+                                    }
                                   }
 
                                   object armadietto {
                                     name "Armadietto"
-                                    desc "Un armadietto metallico chiuso."
+                                    hidden false
+                                    desc {
+                                      if isOpen armadietto false
+                                      "<b>Un armadietto metallico chiuso."
+                                      else
+                                      "<b>Un armadietto metallico aperto."
+                                    }
                                     portable false
                                     container true
                                     openable true
                                     locked false
                                     isOpen false
                                     contains chiave
+                                    verbs {
+                                      usa {
+                                        if isOpen armadietto false
+                                        do open armadietto
+                                        do print "Apri l'armadietto."
+                                        else
+                                        do print "E gia aperto."
+                                      }
+                                    }
                                   }
 
                                   object chiave {
@@ -69,19 +99,27 @@ public class ParserBenchmarks
                                     portable false
                                   }
 
-                                  rule unlock_studio {
+                                  rule unlock_studio once {
                                     when use chiave on porta_studio
                                     if in corridoio
                                     if exitLocked corridoio east
                                     do unlock exit corridoio east
                                     do sound unlock
+                                    do playMusic lab
                                     do print "Click. La porta si apre."
                                   }
 
                                   rule take_diario {
                                     when take diario
                                     do print "Senti qualcosa cadere a terra..."
-                                    do spawn moneta in laboratorio
+                                    do reveal moneta in laboratorio
+                                  }
+
+                                  rule rain_ambience {
+                                    when tick
+                                    if in corridoio
+                                    if chance 10
+                                    do print "La pioggia tamburella lontano."
                                   }
                                   """;
 

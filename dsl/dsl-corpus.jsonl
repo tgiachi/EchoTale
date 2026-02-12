@@ -1,0 +1,15 @@
+{"id":"valid_minimal","valid":true,"input":"game \"X\" start lab\nroom lab { name \"Lab\" }"}
+{"id":"valid_with_metadata_and_voices","valid":true,"input":"game \"Story\" start lab\nauthor = \"squid\"\nversion = \"v1.0.0\"\nvoices { a = \"narrator\" }\nroom lab { name \"<a>Lab\" }"}
+{"id":"valid_rule_once","valid":true,"input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nrule r once { when enter lab do print \"hi\" }"}
+{"id":"valid_reveal","valid":true,"input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nobject coin { name \"Coin\" hidden true }\nobject key { name \"Key\" }\nrule r { when use key do reveal coin in lab }"}
+{"id":"valid_object_default_and_stateful_desc","valid":true,"input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nobject box { name \"Box\" isOpen false desc { if isOpen box false \"Closed\" else \"Open\" } default { do print \"Nothing\" } }"}
+{"id":"valid_command_compare","valid":true,"input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nrule code_ok { when command enter <value> if value == \"0421\" do print \"ok\" }"}
+{"id":"invalid_unknown_object_in_rule","valid":false,"expected_error":"ETD001","input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nrule r { when take diary do print \"x\" }"}
+{"id":"invalid_unknown_room_in_exit","valid":false,"expected_error":"ETD002","input":"game \"X\" start lab\nroom lab { name \"Lab\" exit east -> missing }"}
+{"id":"invalid_unknown_sound","valid":false,"expected_error":"ETD003","input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nobject key { name \"Key\" }\nrule r { when use key do sound s1 }"}
+{"id":"invalid_unknown_music","valid":false,"expected_error":"ETD004","input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nobject key { name \"Key\" }\nrule r { when use key do playMusic m1 }"}
+{"id":"invalid_unknown_voice","valid":false,"expected_error":"ETD005","input":"game \"X\" start lab\nvoices { a = \"narrator\" }\nroom lab { name \"<z>Lab\" }"}
+{"id":"invalid_player_gives_conflict","valid":false,"expected_error":"ETD020","input":"game \"X\" start lab\nplayer { start lab gives key hp 10 }\nroom lab { name \"Lab\" contains key }\nobject key { name \"Key\" }"}
+{"id":"invalid_chance_range","valid":false,"expected_error":"ETD030","input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nrule r { when tick if chance 0 do print \"x\" }"}
+{"id":"invalid_value_compare_outside_command","valid":false,"expected_error":"ETD040","input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nobject box { name \"Box\" verbs { open { if value == \"x\" do print \"x\" } } }"}
+{"id":"invalid_value_compare_variable_mismatch","valid":false,"expected_error":"ETD041","input":"game \"X\" start lab\nroom lab { name \"Lab\" }\nrule r { when command enter <code> if value == \"42\" do print \"x\" }"}

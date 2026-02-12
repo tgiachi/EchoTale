@@ -1,0 +1,112 @@
+(* EchoTale DSL - parser-aligned EBNF (v0.1) *)
+
+document        = game_header , { declaration } ;
+
+game_header     = "game" , string , "start" , identifier ;
+
+declaration      = include_decl
+                 | author_decl
+                 | version_decl
+                 | voices_block
+                 | sounds_block
+                 | music_block
+                 | player_block
+                 | room_block
+                 | object_block
+                 | rule_block ;
+
+include_decl     = "include" , string ;
+author_decl      = "author" , "=" , string ;
+version_decl     = "version" , "=" , string ;
+
+voices_block     = "voices" , "{" , voice_entry , { voice_entry } , "}" ;
+voice_entry      = identifier , "=" , string ;
+
+sounds_block     = "sounds" , "{" , sound_entry , { sound_entry } , "}" ;
+sound_entry      = identifier , "=" , string ;
+
+music_block      = "music" , "{" , music_entry , { music_entry } , "}" ;
+music_entry      = identifier , "=" , string ;
+
+player_block     = "player" , "{" , { player_stmt } , "}" ;
+player_stmt      = "start" , identifier
+                 | "gives" , identifier
+                 | "hp" , integer ;
+
+room_block       = "room" , identifier , "{" , { room_stmt } , "}" ;
+room_stmt        = "name" , string
+                 | "image" , string
+                 | "desc" , string
+                 | "ambient" , string
+                 | exit_stmt
+                 | "contains" , identifier ;
+
+exit_stmt        = "exit" , direction , "->" , identifier , [ lock_segment ] ;
+lock_segment     = "locked" , boolean , [ "key" , identifier ] , [ string ] ;
+
+object_block     = "object" , identifier , "{" , { object_stmt } , "}" ;
+object_stmt      = "name" , string
+                 | "desc" , string
+                 | "desc" , stateful_desc
+                 | "portable" , boolean
+                 | "container" , boolean
+                 | "openable" , boolean
+                 | "locked" , boolean
+                 | "isOpen" , boolean
+                 | "hidden" , boolean
+                 | "contains" , identifier
+                 | default_block
+                 | verbs_block ;
+
+stateful_desc    = "{" , "if" , "isOpen" , identifier , boolean , string , "else" , string , "}" ;
+
+default_block     = "default" , "{" , do_action , { do_action } , "}" ;
+
+verbs_block      = "verbs" , "{" , verb_decl , { verb_decl } , "}" ;
+verb_decl        = identifier , [ "<" , identifier , ">" ] , "{" , verb_stmt , { verb_stmt } , "}" ;
+verb_stmt        = "if" , condition
+                 | "else"
+                 | do_action ;
+
+rule_block       = "rule" , identifier , [ "once" ] , "{" , "when" , trigger , { "if" , condition } , do_action , { do_action } , "}" ;
+
+trigger          = "command" , identifier , "<" , identifier , ">"
+                 | "tick"
+                 | "enter" , identifier
+                 | "look" , identifier
+                 | "take" , identifier
+                 | "use" , identifier , "on" , identifier
+                 | "use" , identifier ;
+
+condition        = "chance" , integer
+                 | "flag" , identifier , "is" , boolean
+                 | "in" , identifier
+                 | "isOpen" , identifier , boolean
+                 | "has" , identifier
+                 | "exitLocked" , identifier , direction
+                 | identifier , ( "==" | "!=" ) , string ;
+
+do_action        = "do" , action ;
+action           = "print" , string
+                 | "playMusic" , identifier
+                 | "stopMusic"
+                 | "sound" , identifier
+                 | "spawn" , identifier , "in" , identifier
+                 | "reveal" , identifier , "in" , identifier
+                 | "set" , "flag" , identifier , boolean
+                 | "open" , identifier
+                 | "unlock" , "exit" , identifier , direction ;
+
+direction        = "north" | "south" | "east" | "west" | "up" | "down" ;
+
+identifier       = ( letter | "_" ) , { letter | digit | "_" } ;
+string           = '"' , { char | escape } , '"' ;
+escape           = "\\" , ( "\\" | '"' | "n" | "r" | "t" ) ;
+boolean          = "true" | "false" ;
+integer          = digit , { digit } ;
+
+letter           = "A".."Z" | "a".."z" ;
+digit            = "0".."9" ;
+char             = ? any char except backslash and quote ? ;
+
+(* Comments supported by parser preprocessor: #, //, /* ... */ *)

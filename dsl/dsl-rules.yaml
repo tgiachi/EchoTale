@@ -1,0 +1,60 @@
+version: 0.1
+extension: ".etale"
+
+syntax:
+  root_header:
+    required: true
+    form: 'game "<title>" start <roomId>'
+  top_level:
+    order: any
+    declarations:
+      - include
+      - author
+      - version
+      - voices
+      - sounds
+      - music
+      - player
+      - room
+      - object
+      - rule
+
+semantics:
+  start_room_resolution:
+    rule: "player.start overrides game.start; fallback to game.start"
+  player_gives:
+    rule: "must reference existing object"
+    conflict_rule: "if object is already placed in world, ETD020"
+  spawn:
+    model: "unique object ids"
+    behavior: "place-or-move existing object into target room"
+  reveal:
+    model: "unique object ids"
+    behavior: "same placement semantics as spawn; intended for hidden objects"
+  rule_once:
+    behavior: "rule should trigger at most once at runtime"
+  voices:
+    declaration: "voices { id = \"name\" }"
+    tagged_string: "supported strings may start with <voiceId>"
+    unknown_voice_diagnostic: ETD005
+  object_desc:
+    static: 'desc "..."'
+    stateful: 'desc { if isOpen <objectId> <bool> "..." else "..." }'
+  rule_else_support:
+    top_level_rules: false
+    object_verbs: true
+
+validator_diagnostics:
+  ETD001: "unknown object"
+  ETD002: "unknown room"
+  ETD003: "unknown sound"
+  ETD004: "unknown music"
+  ETD005: "unknown voice"
+  ETD020: "player.gives object already placed"
+  ETD030: "chance out of range 1..100"
+  ETD040: "value comparison outside command/verb variable context"
+  ETD041: "value comparison variable mismatch"
+
+runtime_notes:
+  - "Includes are parsed as paths; merge/load is external to parser"
+  - "Comments (#, //, /* */) are stripped before parsing"

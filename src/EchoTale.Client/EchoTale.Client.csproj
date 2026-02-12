@@ -14,14 +14,45 @@
         <Using Include="SadConsole.Console" Alias="Console"/>
     </ItemGroup>
 
+
     <ItemGroup>
+        <PackageReference Include="ConsoleAppFramework" Version="5.7.13">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="DryIoc.dll" Version="5.4.3"/>
+        <PackageReference Include="ElevenLabs" Version="0.9.0"/>
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1"/>
+        <PackageReference Include="OpenAI" Version="2.8.0"/>
         <PackageReference Include="SadConsole.Host.MonoGame" Version="10.8.0"/>
         <PackageReference Include="SadConsole.Extended" Version="10.8.0"/>
         <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.103">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Serilog" Version="4.3.1"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\EchoTale.Dsl\EchoTale.Dsl.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\" />
+    </ItemGroup>
+
+  
+    <ItemGroup>
+        <None Include="..\..\dsl\**\*.*"
+              Link="Assets\dsl\%(RecursiveDir)%(Filename)%(Extension)"
+              PackagePath="assets/dsl/%(RecursiveDir)%(Filename)%(Extension)"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="Assets\**\**"/>
+        <EmbeddedResource Include="Assets\**\**"/>
+    </ItemGroup>
+
 
 </Project>

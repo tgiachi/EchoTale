@@ -48,7 +48,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="Assets\Prompts\story_creator.md" />
+      <Content Include="Assets\Prompts\story_creator_title.md" />
     </ItemGroup>
 
 

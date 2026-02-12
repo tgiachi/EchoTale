@@ -1,6 +1,7 @@
 ﻿using ConsoleAppFramework;
 using DryIoc;
 using EchoTale.Client;
+using EchoTale.Client.Data;
 using EchoTale.Client.Interfaces.Services;
 using EchoTale.Client.Internal;
 using EchoTale.Client.Scenes;
@@ -23,7 +24,6 @@ ConsoleApp.RunAsync(
 
         rootDirectory ??= Path.Combine(Directory.GetCurrentDirectory(), "EchoTale");
 
-
         Builder
             .GetBuilder()
             .OnStart(
@@ -31,21 +31,18 @@ ConsoleApp.RunAsync(
                 {
                     InstanceHolder.Container = new();
 
+                    InstanceHolder.Container.RegisterInstance(
+                        new EchoTaleConfig()
+                        {
+                            OpenAIKey = Environment.GetEnvironmentVariable("ECHO_TALE_OPENAPI_KEY"),
+                        }
+                    );
+
                     InstanceHolder.Container.Register<IOpenAIService, OpenAIService>(Reuse.Singleton);
                     InstanceHolder.Container.Register<IJobScheduler, JobScheduler>(Reuse.Singleton);
 
                     InstanceHolder.Container.Resolve<IJobScheduler>().Start(5);
 
-                    // InstanceHolder.Container.Resolve<IJobScheduler>().Enqueue(
-                    //     async () =>
-                    //     {
-                    //         foreach (var i in Enumerable.Range(1, 5))
-                    //         {
-                    //             InstanceHolder.EmitLog($"Job {i} started.", i, 5);
-                    //             await Task.Delay(1000);
-                    //             InstanceHolder.EmitLog($"Job {i} completed.", i, 5);
-                    //         }
-                    //     });
 
                 }
             )

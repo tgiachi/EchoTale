@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using EchoTale.Client.Interfaces.Services;
+using Serilog;
 
 namespace EchoTale.Client.Services;
 
@@ -121,9 +122,9 @@ public sealed class JobScheduler : IJobScheduler, IDisposable
             {
                 await job();
             }
-            catch
+            catch (Exception ex)
             {
-                // Swallow job exceptions to keep worker alive.
+                Log.Error(ex, "JobScheduler worker caught an exception while executing a job.");
             }
         }
     }

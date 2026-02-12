@@ -5,8 +5,10 @@ namespace EchoTale.Client;
 
 public class InstanceHolder
 {
-    private static readonly object _logQueueSync = new();
+    private static readonly Lock _logQueueSync = new();
     private static readonly Queue<LogEmitData> _logQueue = new();
+
+    public static GameHost Host { get; set; }
 
     public static Container Container { get; set; }
 

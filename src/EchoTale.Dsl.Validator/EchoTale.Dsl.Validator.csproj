@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>etaleval</ToolCommandName>
+        <PackageId>etaleval</PackageId>
+        <Version>0.1.1</Version>
+        <Description>EchoTale DSL validator CLI and .NET tool.</Description>
+        <PackageOutputPath>$(MSBuildProjectDirectory)/../../artifacts/tools</PackageOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\EchoTale.Dsl\EchoTale.Dsl.csproj"/>
+    </ItemGroup>
+
+</Project>

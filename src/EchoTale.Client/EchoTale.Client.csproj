@@ -39,7 +39,9 @@
 
 
     <ItemGroup>
-        <None Include="..\..\dsl\**\*.*" Link="Assets\dsl\%(RecursiveDir)%(Filename)%(Extension)" PackagePath="assets/dsl/%(RecursiveDir)%(Filename)%(Extension)" />
+        <EmbeddedResource Include="..\..\dsl\**\*.*"
+                          Link="Assets\dsl\%(RecursiveDir)%(Filename)%(Extension)"
+                          LogicalName="Assets/dsl/%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
@@ -48,6 +50,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Include="Assets\Prompts\dsl_generator.md" />
       <Content Include="Assets\Prompts\story_creator_title.md" />
     </ItemGroup>
 

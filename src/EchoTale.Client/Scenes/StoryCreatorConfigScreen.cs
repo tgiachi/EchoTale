@@ -5,6 +5,7 @@ using DryIoc;
 using EchoTale.Client.Data.Internal;
 using EchoTale.Client.Data.Json;
 using EchoTale.Client.Extensions;
+using EchoTale.Client.Extensions.Strings;
 using EchoTale.Client.Interfaces.Services;
 using EchoTale.Client.Internal;
 using EchoTale.Client.Types;
@@ -16,6 +17,8 @@ namespace EchoTale.Client.Scenes;
 
 public class StoryCreatorConfigScreen : ScreenObject
 {
+    private const string CreateStoryButtonText = "Create story";
+    private const string BuildDslButtonText = "Build DSL";
     private const int WindowWidth = GameSettings.GAME_WIDTH - 10;
     private const int WindowHeight = GameSettings.GAME_HEIGHT - 10;
     private const int ControlWidth = WindowWidth - 4;
@@ -46,8 +49,10 @@ public class StoryCreatorConfigScreen : ScreenObject
     public StoryCreatorConfig? CreatedConfig { get; private set; }
 
     private IOpenAIService OpenAIService => InstanceHolder.Container.Resolve<IOpenAIService>();
+    private IStoryCreatorService StoryCreatorService => InstanceHolder.Container.Resolve<IStoryCreatorService>();
 
     public event Action<StoryCreatorConfig>? CreateStoryClicked;
+    public event Action<StoryCreatorConfig>? BuildDslClicked;
 
     public StoryCreatorConfigScreen()
     {
@@ -90,7 +95,12 @@ public class StoryCreatorConfigScreen : ScreenObject
         _descriptionPanel.Add(_descriptionViewer);
 
         Label genreLabel = new("Genre") { Position = new Point(left.X, 13) };
-        _genreCombo = new ComboBox<StoryGenreType>(ControlWidth, ControlWidth, DropdownHeight, Enum.GetValues<StoryGenreType>())
+        _genreCombo = new ComboBox<StoryGenreType>(
+            ControlWidth,
+            ControlWidth,
+            DropdownHeight,
+            Enum.GetValues<StoryGenreType>()
+        )
         {
             Position = new Point(left.X, 14),
             SelectedIndex = 0
@@ -110,11 +120,21 @@ public class StoryCreatorConfigScreen : ScreenObject
             Alignment = HorizontalAlignment.Center
         };
 
-        Button createButton = new("Create story")
+        int buttonsGap = 4;
+        int buttonsTotalWidth = CreateStoryButtonText.Length + BuildDslButtonText.Length + buttonsGap;
+        int buttonsStartX = (WindowWidth - buttonsTotalWidth) / 2;
+
+        Button createButton = new(CreateStoryButtonText)
         {
-            Position = new Point((WindowWidth - "Create story".Length) / 2, 21)
+            Position = new Point(buttonsStartX, 21)
         };
         createButton.Click += OnCreateStoryClick;
+
+        Button buildDslButton = new(BuildDslButtonText)
+        {
+            Position = new Point(buttonsStartX + CreateStoryButtonText.Length + buttonsGap, 21)
+        };
+        buildDslButton.Click += OnBuildDslClick;
 
         _statusLabel = new Label(ControlWidth)
         {
@@ -133,6 +153,7 @@ public class StoryCreatorConfigScreen : ScreenObject
         _window.Controls.Add(_languageCombo);
         _window.Controls.Add(_spinnerLabel);
         _window.Controls.Add(createButton);
+        _window.Controls.Add(buildDslButton);
         _window.Controls.Add(_statusLabel);
 
         Children.Add(_background);
@@ -140,9 +161,17 @@ public class StoryCreatorConfigScreen : ScreenObject
         _window.Show(false);
 
         CreateStoryClicked += config =>
-        {
-            InstanceHolder.Container.Resolve<IJobScheduler>().Enqueue(() => GenerateStoryAsync(config));
-        };
+                              {
+                                  InstanceHolder.Container
+                                                .Resolve<IJobScheduler>()
+                                                .Enqueue(() => GenerateStoryAsync(config));
+                              };
+
+        BuildDslClicked += config =>
+                           {
+                               StoryCreatorService.CreateStoryInBackground(config);
+                               InstanceHolder.Host.Screen = new LoadingScreen();
+                           };
     }
 
     public override void Update(TimeSpan delta)
@@ -155,6 +184,7 @@ public class StoryCreatorConfigScreen : ScreenObject
         if (_isSpinning)
         {
             _spinnerElapsedMs += delta.TotalMilliseconds;
+
             if (_spinnerElapsedMs >= SpinnerFrameIntervalMs)
             {
                 _spinnerElapsedMs -= SpinnerFrameIntervalMs;
@@ -188,26 +218,35 @@ public class StoryCreatorConfigScreen : ScreenObject
 
         int receivedChars = 0;
         StoryTitleJson result = await OpenAIService.GetChatCompletionStreamingFromResourceAsync<StoryTitleJson>(
-                                   "Assets/Prompts/story_creator_title.md",
-                                   new()
-                                   {
-                                       { "Genere", config.Genre.ToString() },
-                                       { "Lingua", config.Language }
-                                   },
-                                   chunk =>
-                                   {
-                                       int total = Interlocked.Add(ref receivedChars, chunk.Length);
-                                       EnqueueUi(
-                                           () =>
-                                           {
-                                               _statusLabel.DisplayText = $"Streaming... {total} chars";
-                                               _statusLabel.IsDirty = true;
-                                           }
-                                       );
-                                   }
-                               );
+                                    "Assets/Prompts/story_creator_title.md",
+                                    new()
+                                    {
+                                        { "Genere", config.Genre.ToString() },
+                                        { "Lingua", config.Language }
+                                    },
+                                    chunk =>
+                                    {
+                                        int total = Interlocked.Add(ref receivedChars, chunk.Length);
+                                        EnqueueUi(
+                                            () =>
+                                            {
+                                                _statusLabel.DisplayText = $"Streaming... {total} chars";
+                                                _statusLabel.IsDirty = true;
+                                            }
+                                        );
+                                    }
+                                );
 
         await TypewriteTitleAsync(result.Title);
+
+        CreatedConfig = new StoryCreatorConfig()
+        {
+            Title = result.Title,
+            Description = result.Description,
+            Genre = config.Genre,
+            Language = config.Language,
+            StoryName = result.Title.ToSnakeCase(),
+        };
 
         EnqueueUi(
             () =>
@@ -220,10 +259,28 @@ public class StoryCreatorConfigScreen : ScreenObject
 
     private void OnCreateStoryClick(object? sender, EventArgs e)
     {
+        StoryCreatorConfig config = BuildConfigFromForm();
+
+        CreatedConfig = config;
+        _statusLabel.DisplayText = $"Created: {config.Genre} / {config.Language}";
+        InstanceHolder.EmitLog($"Story config created: {config.Genre} ({config.Language})", 1, 1);
+        CreateStoryClicked?.Invoke(config);
+    }
+
+    private void OnBuildDslClick(object? sender, EventArgs e)
+    {
+        if (CreatedConfig != null)
+        {
+            BuildDslClicked?.Invoke(CreatedConfig);
+        }
+    }
+
+    private StoryCreatorConfig BuildConfigFromForm()
+    {
         StoryGenreType genre = _genreCombo.SelectedItem;
         string language = _languageCombo.SelectedItem;
 
-        StoryCreatorConfig config = new()
+        return new StoryCreatorConfig
         {
             StoryName = _titleTextBox.Text.Trim(),
             Title = _titleTextBox.Text.Trim(),
@@ -232,11 +289,6 @@ public class StoryCreatorConfigScreen : ScreenObject
             Language = language,
             NumRooms = string.Empty
         };
-
-        CreatedConfig = config;
-        _statusLabel.DisplayText = $"Created: {genre} / {language}";
-        InstanceHolder.EmitLog($"Story config created: {genre} ({language})", 1, 1);
-        CreateStoryClicked?.Invoke(config);
     }
 
     private void SetDescriptionText(string text)
@@ -261,15 +313,18 @@ public class StoryCreatorConfigScreen : ScreenObject
             if (string.IsNullOrWhiteSpace(paragraph))
             {
                 wrapped.Add(string.Empty);
+
                 continue;
             }
 
             StringBuilder line = new();
+
             foreach (string word in paragraph.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             {
                 if (line.Length == 0)
                 {
                     line.Append(word);
+
                     continue;
                 }
 
@@ -278,6 +333,7 @@ public class StoryCreatorConfigScreen : ScreenObject
                     wrapped.Add(line.ToString());
                     line.Clear();
                     line.Append(word);
+
                     continue;
                 }
 
@@ -304,6 +360,7 @@ public class StoryCreatorConfigScreen : ScreenObject
         );
 
         string current = string.Empty;
+
         foreach (char c in title)
         {
             current += c;
@@ -320,7 +377,9 @@ public class StoryCreatorConfigScreen : ScreenObject
         }
     }
 
-    private string BuildSpinnerText() => $"{_spinnerMessage} {_spinnerFrames[_spinnerFrameIndex]}";
+    private string BuildSpinnerText()
+        => $"{_spinnerMessage} {_spinnerFrames[_spinnerFrameIndex]}";
 
-    private void EnqueueUi(Action action) => _uiActions.Enqueue(action);
+    private void EnqueueUi(Action action)
+        => _uiActions.Enqueue(action);
 }

@@ -29,6 +29,7 @@ ConsoleApp.RunAsync(
             .OnStart(
                 (sender, host) =>
                 {
+                    InstanceHolder.Host = host;
                     InstanceHolder.Container = new();
 
                     InstanceHolder.Container.RegisterInstance(
@@ -40,10 +41,9 @@ ConsoleApp.RunAsync(
 
                     InstanceHolder.Container.Register<IOpenAIService, OpenAIService>(Reuse.Singleton);
                     InstanceHolder.Container.Register<IJobScheduler, JobScheduler>(Reuse.Singleton);
+                    InstanceHolder.Container.Register<IStoryCreatorService, StoryCreatorService>(Reuse.Singleton);
 
                     InstanceHolder.Container.Resolve<IJobScheduler>().Start(5);
-
-
                 }
             )
             .SetWindowSizeInCells(GameSettings.GAME_WIDTH, GameSettings.GAME_HEIGHT)

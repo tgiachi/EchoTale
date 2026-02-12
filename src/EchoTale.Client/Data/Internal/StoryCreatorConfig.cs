@@ -10,7 +10,6 @@ public class StoryCreatorConfig
 
     public string Language { get; set; }
 
-
     public string Description { get; set; }
 
     public StoryGenreType Genre { get; set; }

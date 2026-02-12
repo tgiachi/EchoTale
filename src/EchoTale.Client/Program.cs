@@ -35,10 +35,22 @@ ConsoleApp.RunAsync(
                     InstanceHolder.Container.Register<IJobScheduler, JobScheduler>(Reuse.Singleton);
 
                     InstanceHolder.Container.Resolve<IJobScheduler>().Start(5);
+
+                    // InstanceHolder.Container.Resolve<IJobScheduler>().Enqueue(
+                    //     async () =>
+                    //     {
+                    //         foreach (var i in Enumerable.Range(1, 5))
+                    //         {
+                    //             InstanceHolder.EmitLog($"Job {i} started.", i, 5);
+                    //             await Task.Delay(1000);
+                    //             InstanceHolder.EmitLog($"Job {i} completed.", i, 5);
+                    //         }
+                    //     });
+
                 }
             )
             .SetWindowSizeInCells(GameSettings.GAME_WIDTH, GameSettings.GAME_HEIGHT)
-            .SetStartingScreen<RootScreen>()
+            .SetStartingScreen<StoryCreatorConfigScreen>()
             .IsStartingScreenFocused(true)
             .ConfigureFonts(true)
             .Run();

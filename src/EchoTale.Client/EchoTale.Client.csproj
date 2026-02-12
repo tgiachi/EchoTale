@@ -25,7 +25,6 @@
         <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1"/>
         <PackageReference Include="OpenAI" Version="2.8.0"/>
         <PackageReference Include="SadConsole.Host.MonoGame" Version="10.8.0"/>
-        <PackageReference Include="SadConsole.Extended" Version="10.8.0"/>
         <PackageReference Update="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.103">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -38,20 +37,18 @@
         <ProjectReference Include="..\EchoTale.Dsl\EchoTale.Dsl.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Assets\" />
-    </ItemGroup>
 
-  
     <ItemGroup>
-        <None Include="..\..\dsl\**\*.*"
-              Link="Assets\dsl\%(RecursiveDir)%(Filename)%(Extension)"
-              PackagePath="assets/dsl/%(RecursiveDir)%(Filename)%(Extension)"/>
+        <None Include="..\..\dsl\**\*.*" Link="Assets\dsl\%(RecursiveDir)%(Filename)%(Extension)" PackagePath="assets/dsl/%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
         <None Remove="Assets\**\**"/>
         <EmbeddedResource Include="Assets\**\**"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Assets\Prompts\story_creator.md" />
     </ItemGroup>
 
 
